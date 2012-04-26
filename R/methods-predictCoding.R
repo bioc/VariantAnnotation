@@ -69,6 +69,11 @@ setMethod("predictCoding",
         return(txlocal)
     rwidth <- width(txlocal)
     translateidx <- rep(TRUE, length(txlocal)) 
+    ## reverse complement variant alleles for "-" strand
+    nstrand <- as.vector(strand(txlocal) == "-")
+    if (any(nstrand))
+        values(txlocal)[["varAllele"]][nstrand] <-
+            reverseComplement(values(txlocal)[["varAllele"]][translateidx & nstrand])
     altallele <- values(txlocal)[["varAllele"]]
     fmshift <- abs(width(altallele) - rwidth) %% 3 != 0 
     if (any(fmshift))
@@ -90,7 +95,7 @@ setMethod("predictCoding",
     ## reference and variant codon sequences
     altpos <- (start(values(txlocal)[["cdsLoc"]]) - 1L) %% 3L + 1L
     refCodon <- varCodon <- .constructRefSequences(txlocal, altpos, seqSource, cache)
-    subseq(varCodon, start=altpos, width=rwidth) <- altallele
+    subseq(varCodon, start=altpos, width=rwidth) <- altallele[translateidx]
 
     ## translation
     refAA <- translate(refCodon)
