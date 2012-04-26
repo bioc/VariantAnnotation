@@ -63,11 +63,19 @@
   into the reference sequences and transcribed. Transcription only 
   occurs if the substitution, insertion or deletion results in a new sequence 
   length divisible by 3.
+
+  When the \code{query} is an unstranded (*) \code{GRanges} \code{predictCoding}
+  will attempt to find overlaps on both the positive and negative strands of the
+  \code{subject}. When the subject hit is on the negative strand the return
+  \code{varAllele} is reverse complemented. The strand of the returned
+  \code{GRanges} represents the strand of the subject hit.
 } 
 
 \value{
   A \link[GenomicRanges]{GRanges} with a row for each variant-transcript 
   match. The result includes only variants that fell within coding regions.
+  If the \code{query} was unstranded (*) the strand of the output
+  \code{GRanges} represents the strand of the \code{subject} hit.
 
   At a minimum, the \code{elementMetadata} columns include,
   \describe{
