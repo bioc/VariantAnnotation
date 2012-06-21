@@ -50,9 +50,10 @@ setMethod("select", "SIFTDb",
     if (!missing(keys)) {
         fmtkeys <- .formatRSID(keys) 
         missing <- (!fmtkeys %in% as.character(raw$RSID))
-        if (any(missing))
-            warning(paste("key not found in database : ", keys[missing], 
-                          "\n", sep="")) 
+        if (any(missing)) {
+            msg <- paste(IRanges:::selectSome(keys[missing], 5), collapse=" ")
+            warning(sprintf("keys not found in database : %s", msg))
+        }
     }
 
     ## create variable columns 
