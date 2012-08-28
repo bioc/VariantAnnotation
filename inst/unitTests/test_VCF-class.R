@@ -126,6 +126,12 @@ test_VCF_subset <- function()
     checkIdentical(rowData(ss1)[idx,,drop=FALSE], rowData(ss2))
     ss2 <- ss1[,idx]
     checkIdentical(colData(ss1)[idx,,drop=FALSE], colData(ss2))
+
+    ## 0 columns
+    ss1 <- vcf
+    geno(ss1) <- SimpleList()
+    colData(ss1) <- DataFrame()
+    checkIdentical(dim(ss1[1:5, ]), c(5L, 0L))
 }
 
 test_VCF_subsetassign <- function()

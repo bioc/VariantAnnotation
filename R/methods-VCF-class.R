@@ -145,19 +145,22 @@ setMethod("geno", "VCF",
 setReplaceMethod("geno", c("VCF", "character", "matrix"),
     function(x, i, ..., value)
 {
-    assay(x, i, ..., value=value)
+    assays(x)[[i]] <- value
+    x
 })
 
 setReplaceMethod("geno", c("VCF", "numeric", "matrix"),
     function(x, i, ..., value)
 {
-    assay(x, i, ..., value=value)
+    assays(x)[[i]] <- value
+    x
 })
 
 setReplaceMethod("geno", c("VCF", "missing", "SimpleList"),
     function(x, i, ..., value)
 {
-    assay(x, ..., value=value)
+    assays(x) <- value
+    x
 })
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -183,12 +186,19 @@ setReplaceMethod("geno", c("VCF", "missing", "SimpleList"),
                      elt[i, j, drop=FALSE]
               })
  
+    if (length(rowData(x)) == 0L) {
+        info=values(info(x))[i,,drop=FALSE]
+        fixed=values(fixed(x))[i,,drop=FALSE]
+    } else {
+        info=values(info(x))[i,-1,drop=FALSE]
+        fixed=values(fixed(x))[i,-1,drop=FALSE]
+    }
     initialize(x, 
                rowData=rowData(x)[i,,drop=FALSE],
                colData=colData(x)[j,,drop=FALSE],
                assays=geno, 
-               info=values(info(x))[i,-1,drop=FALSE],
-               fixed=values(fixed(x))[i,-1])
+               info=info,
+               fixed=fixed)
 }
 
 setMethod("[", c("VCF", "ANY", "ANY"),
@@ -196,14 +206,23 @@ setMethod("[", c("VCF", "ANY", "ANY"),
 {
     if (1L != length(drop) || (!missing(drop) && drop))
         warning("'drop' ignored '[,VCF,ANY,ANY-method'")
-    if (missing(i) && missing(j))
+    if (missing(i) && missing(j)) {
         x
-    else if (missing(i))
-        .VCF.subset(x, TRUE, j, ...)
-    else if (missing(j))
-        .VCF.subset(x, i, TRUE, ...)
-    else
+    } else if (missing(i)) {
+        if (nrow(x) == 0L)
+            i <- logical(0)
+        else
+            i <- TRUE
         .VCF.subset(x, i, j, ...)
+    } else if (missing(j)) {
+        if (ncol(x) == 0L)
+            j <- logical(0)
+        else
+            j <- TRUE
+        .VCF.subset(x, i, j, ...)
+    } else {
+        .VCF.subset(x, i, j, ...)
+    }
 })
 
 .VCF.subsetassign <-
@@ -254,14 +273,23 @@ setReplaceMethod("[",
     c("VCF", "ANY", "ANY", "VCF"),
     function(x, i, j, ..., value)
 {
-    if (missing(i) && missing(j))
+    if (missing(i) && missing(j)) {
         x
-    else if (missing(i))
-        .VCF.subsetassign(x, TRUE, j, ..., value=value)
-    else if (missing(j))
-        .VCF.subsetassign(x, i, TRUE, ..., value=value)
-    else
+    } else if (missing(i)) {
+        if (nrow(x) == 0L)
+            i <- logical(0)
+        else
+            i <- TRUE
         .VCF.subsetassign(x, i, j, ..., value=value)
+    } else if (missing(j)) {
+       if (ncol(x) == 0L)
+            j <- logical(0)
+        else
+            j <- TRUE
+        .VCF.subsetassign(x, i, j, ..., value=value)
+    } else {
+        .VCF.subsetassign(x, i, j, ..., value=value)
+    }
 })
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
