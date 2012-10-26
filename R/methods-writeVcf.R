@@ -27,11 +27,6 @@ setMethod(writeVcf, c("VCF", "character"),
     }
 })
 
-### FIXME: move to Biostrings
-setAs("DNAStringSetList", "CharacterList", function(from) {
-  relist(as.character(unlist(from, use.names = FALSE)), from)
-})
-
 .makeVcfMatrix <- function(obj)
 {
     rd <- rowData(obj)
@@ -51,12 +46,15 @@ setAs("DNAStringSetList", "CharacterList", function(from) {
     FILTER <- filt(obj)
     FILTER[is.na(FILTER)] <- "."
     INFO <- .makeVcfInfo(values(info(obj))[-1])
-    GENO <- .makeVcfGeno(geno(obj))
-    FORMAT <- GENO[,1]
-    GENO <- GENO[,-1,drop=FALSE]
-    genoPasted <- do.call(paste, c(split(GENO, col(GENO)), sep = "\t"))
-    paste(CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO, FORMAT, genoPasted,
-          sep = "\t")
+    ans <- paste(CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO, sep = "\t")
+    if (length(geno(obj)) > 0L) {
+      GENO <- .makeVcfGeno(geno(obj))
+      FORMAT <- GENO[,1]
+      GENO <- GENO[,-1,drop=FALSE]
+      genoPasted <- do.call(paste, c(split(GENO, col(GENO)), sep = "\t"))
+      ans <- paste(ans, FORMAT, genoPasted, sep = "\t")
+    }
+    ans
 }
 
 .makeVcfID <- function(id, ...)
@@ -76,13 +74,15 @@ setAs("DNAStringSetList", "CharacterList", function(from) {
       matrix(unlist(x, use.names=FALSE), nrow(x), prod(tail(dim(x), -1)))
     })
   }
-  
+ 
   do.call(cbind, Map(function(elt, nms) {
 ### Should be discussed, but it seems like if we have a list matrix,
 ### we should look for elements that are empty, not a single NA.
+### VO: If readVcf() was used, all empty fields were converted to NA.
     if (is.list(elt))
-      haveData <- elementLengths(elt) > 0
-    else haveData <- rowSums(!is.na(elt)) > 0
+      haveData <- rowSums(matrix(elementLengths(elt), nrow(elt))) > 0
+    else 
+      haveData <- rowSums(!is.na(elt)) > 0
     as.character(ifelse(haveData, nms, NA_character_))
   }, as.list(geno), names(geno)))
 }
@@ -128,7 +128,7 @@ setAs("DNAStringSetList", "CharacterList", function(from) {
     keep <- !is.na(formatMatPerSub)
     genoListBySub <- seqsplit(genoMat[keep], row(genoMat)[keep])
     genoMatCollapsed <- matrix(.pasteCollapse(genoListBySub, ":"), nrec, nsub)
-    
+ 
     cbind(FORMAT, genoMatCollapsed)
 }
 
@@ -137,23 +137,23 @@ setAs("DNAStringSetList", "CharacterList", function(from) {
     if (ncol(info) == 0) {
       return(rep.int(".", nrow(info)))
     }
-    
+ 
     lists <- sapply(info, is, "list")
     info[lists] <- lapply(info[lists], as, "List")
-    
+ 
     lists <- sapply(info, is, "List")
     info[lists] <- lapply(info[lists], function(l) {
       charList <- as(l, "CharacterList")
-      charList[is.na(l)] <- "."
+      charList@unlistData[is.na(charList@unlistData)] <- "."
       collapsed <- .pasteCollapse(charList, ",")
       ifelse(sum(!is.na(l)) > 0L, collapsed, NA_character_)
     })
-    
+ 
     arrays <- sapply(info, is.array)
     info[arrays] <- lapply(info[arrays], function(a) {
       mat <- matrix(a, nrow = nrow(a))
       charMat <- mat
-      charMat[is.na(mat)] <- "."
+      charMat@unlistData[is.na(charMat@unlistData)] <- "."
       collapsed <- do.call(paste, c(as.data.frame(charMat), sep = ","))
       ifelse(rowSums(!is.na(mat)) > 0L, NA_character_, collapsed)
     })
@@ -184,10 +184,12 @@ setAs("DNAStringSetList", "CharacterList", function(from) {
     hdr <- exptData(obj)[["header"]]
     header <- Map(.formatHeader, as.list(header(hdr)),
                   as.list(names(header(hdr))))
-    samples <- samples(hdr) 
-    colnms <- paste(c("#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER",
-                    "INFO", "FORMAT", samples[!is.null(samples)]), collapse="\t")
-
+    samples <- samples(hdr)
+    colnms <- c("#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO")
+    if (length(geno(obj)) > 0L) {
+      colnms <- c(colnms, "FORMAT", samples[!is.null(samples)])
+    }
+    colnms <- paste(colnms, collapse="\t")
     unlist(c(header, colnms), use.names=FALSE) 
 }
 
@@ -204,7 +206,8 @@ setAs("DNAStringSetList", "CharacterList", function(from) {
         if ("Description" %in% colnames(df)) {
             df$Description <- paste("\"", df$Description, "\"", sep="")
             prs <- paste(rep(colnames(df), each=nrow(df)), "=",
-                         unlist(df, use.names=FALSE), sep="")
+                         unlist(lapply(df, as.character), use.names=FALSE),
+                         sep="")
             lst <- split(prs, seq_len(nrow(df)))
             lns <- .pasteCollapse(CharacterList(lst), collapse=",") 
             paste("##", nms, "=<ID=", rownames(df), ",", lns, ">", sep="")
