@@ -140,6 +140,21 @@ test_VCF_subset <- function()
     checkIdentical(dim(vcf[ ,1:5]), c(0L, 5L))
 }
 
+test_VCF_subset_empty_slots <- function()
+{
+    fl <- system.file("extdata", "ex2.vcf", package="VariantAnnotation")
+    vcf <- readVcf(fl, "hg19", param=ScanVcfParam(info=NA, fixed=NA))
+    checkTrue(names(mcols(vcf)) == "paramRangeID")
+    checkTrue(nrow(vcf[2:4]) == 3L)
+    checkTrue(ncol(vcf[,1:2]) == 2L)
+
+    vcf <- readVcf(fl, "hg19", param=ScanVcfParam(geno=NA))
+    checkTrue(length(names(geno(vcf))) == 0L)
+    checkTrue(ncol(vcf) == 0L)
+    checkException(vcf[,1:5], silent=TRUE)
+    checkTrue(nrow(vcf[2:4]) == 3L)
+}
+
 test_VCF_subsetassign <- function()
 {
     fl <- system.file("extdata", "ex2.vcf", package="VariantAnnotation")
