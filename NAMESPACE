@@ -14,6 +14,10 @@ importClassesFrom(Biobase,
     AssayData
 )
 
+importFrom(Biobase,
+    sampleNames
+)
+
 importClassesFrom(AnnotationDbi, 
     AnnotationDb
 )
@@ -37,13 +41,28 @@ importMethodsFrom(GenomicFeatures,
     isActiveSeq, "isActiveSeq<-"
 )
 
+importFrom(Biostrings,
+    AAStringSet, DNAStringSet, DNAStringSetList
+)
+
+importMethodsFrom(Biostrings,
+    nchar, reverseComplement, subseq, substr, translate
+)
+
+importClassesFrom(Biostrings, 
+    DNAStringSet, DNAStringSetList
+)
+
 importFrom(IRanges, 
-    CharacterList, DataFrame, IRanges, isSingleString,
-    PartitioningByWidth, successiveViews, subsetByFilter, expand
+    CharacterList, DataFrame, DataFrameList, FilterRules, IntegerList, 
+    IRanges, isSingleNumber, isSingleString, isTRUEorFALSE, LogicalList, 
+    NumericList, PartitioningByEnd, PartitioningByWidth, seqsplit,
+    SimpleList, splitAsList, successiveViews
 )
 
 importClassesFrom(IRanges, 
-    DataFrame, Ranges, RangesList, RangedData
+    CharacterList, DataFrame, Ranges, RangesList, RangedData,
+    SimpleDataFrameList, SimpleList
 )
 
 importMethodsFrom(IRanges, 
