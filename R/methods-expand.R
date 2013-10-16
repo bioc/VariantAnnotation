@@ -9,6 +9,8 @@ setMethod("expand", "CollapsedVCF",
         if (all(elt == 1L)) {
             fxd <- fixed(x)
             fxd$ALT <- unlist(alt(x), use.names=FALSE)
+            if (!is.null(geno(x)$AD))
+              geno(x)$AD <- .expandAD(geno(x)$AD, nrow(x), ncol(x))
             return(VCF(rowData=rowData(x), colData=colData(x), 
                        exptData=exptData(x), fixed=fxd, 
                        info=info(x), geno=geno(x), 
@@ -37,10 +39,11 @@ setMethod("expand", "CollapsedVCF",
     gvar <- geno(x)
     if (length(gvar) == 0L)
         return(gvar)
+    ghdr <- geno(hdr)[rownames(geno(hdr)) %in% names(gvar),]
     ## expand length of ALT
-    isA <- geno(hdr)$Number == "A"
+    isA <- ghdr$Number == "A"
     if (any(isA)) {
-        gnms <- rownames(geno(hdr))[geno(hdr)$Number == "A"]
+        gnms <- rownames(ghdr)[ghdr$Number == "A"]
         gelt <- sapply(gnms, function(i) 
                     elt - elementLengths(gvar[[i]]))
         ## elementLengths same as ALT
@@ -60,8 +63,8 @@ setMethod("expand", "CollapsedVCF",
         gvar
     }
     ## list length of ALT each with one REF,ALT pair
-    if (any(isAD <- rownames(geno(hdr)) == "AD"))
-        gvar[isAD] <- .expandAD(gvar$AD, length(idx), ncol(x)) 
+    if (!is.null(gvar$AD))
+        gvar$AD <- .expandAD(gvar$AD, length(idx), ncol(x)) 
     gvar[!isA & !isAD] <- endoapply(gvar[!isA & !isAD], function(i) {
                               if (is(i, "matrix")) {
                                   matrix(i[idx, ], ncol=ncol(x))
@@ -74,13 +77,16 @@ setMethod("expand", "CollapsedVCF",
 
 .expandAD <- function(AD, idxlen, xcols)
 {
-    elen <- elementLengths(AD)
-    if (sum(elen-1L) != idxlen)
+    adpart <- PartitioningByWidth(AD)
+    nalt <- width(adpart) - 1L
+    if (sum(nalt) != idxlen*xcols)
       stop("length of AD does not match expanded index")
     AD <- unlist(AD, use.names=FALSE)
-    ref <- c(TRUE, tail(seq_along(AD), -1L) %in% (cumsum(elen) + 1L))
-    vec <- c(rep(AD[ref], elen - 1L), AD[!ref])
-    list(array(vec, c(sum(!ref), xcols, 2L)))
+    ref <- logical(length(AD))
+    ref[start(adpart)] <- TRUE
+    ##ref <- c(TRUE, tail(seq_along(AD), -1L) %in% (cumsum(elen) + 1L))
+    vec <- c(rep(AD[ref], nalt), AD[!ref])
+    array(vec, c(idxlen, xcols, 2L))
 }
 
 .expandInfo <- function(x, hdr, elt, idx)
