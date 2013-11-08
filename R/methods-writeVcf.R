@@ -155,6 +155,11 @@ setMethod(writeVcf, c("VCF", "connection"),
                              recursive = FALSE),
                       nsub * nrec, length(geno))
 
+    ## handle Rle
+    rle <- sapply(geno, function(x) is(x[[1]], "Rle"))
+    if (any(rle))
+        genoMat[,rle] <- lapply(genoMat[,rle], as.vector)
+
     ## convert NA values to '.' and get a simple character matrix
     genoMatFlat <- as.character(unlist(genoMat))
     genoMatFlat[is.na(genoMatFlat)] <- "."
