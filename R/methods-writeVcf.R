@@ -53,7 +53,8 @@ setMethod(writeVcf, c("VCF", "connection"),
 
     CHROM <- as.vector(seqnames(rd))
     POS <- start(rd)
-    ID <- .makeVcfID(names(rd))
+    if (is.null(ID <- names(rd)))
+        ID <- "."
     REF <- as.character(ref(obj))
     ALT <- alt(obj)
     if (is(ALT, "DNAStringSetList"))
