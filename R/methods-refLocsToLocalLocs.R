@@ -6,8 +6,6 @@ setMethod("refLocsToLocalLocs",
     signature("GRanges", "TranscriptDb", "missing"),
     function(ranges, txdb, cdsbytx, ...)
 {
-    ## remove circular
-    .setSubjectSeq(ranges, txdb)
     cdsbytx <- cdsBy(txdb, "tx")
     callGeneric(ranges=ranges, cdsbytx=cdsbytx)
 })
@@ -16,7 +14,6 @@ setMethod("refLocsToLocalLocs",
     signature("GRanges", "missing", "GRangesList"),
     function(ranges, txdb, cdsbytx, ...)
 {
-    ## FIXME : .setSubjectSeq equivalent for GRangesLists
     if (is.null(names(cdsbytx)))
         stop("the outer list elements of cdsbytx must have ",
              " names (i.e., transcript identifiers)") 
