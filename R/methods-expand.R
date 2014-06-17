@@ -11,7 +11,7 @@ setMethod("expand", "CollapsedVCF",
             fxd$ALT <- unlist(alt(x), use.names=FALSE)
             if (!is.null(geno(x)$AD))
               geno(x)$AD <- .expandAD(geno(x)$AD, nrow(x), ncol(x))
-            return(VCF(rowData=rowData(x), colData=colData(x), 
+            return(VCF(rowData=.stripRowData(rowData(x)), colData=colData(x), 
                        exptData=exptData(x), fixed=fxd, 
                        info=.unlistAltInfo(x), geno=geno(x), 
                        ..., collapsed=FALSE))
@@ -26,17 +26,16 @@ setMethod("expand", "CollapsedVCF",
         ## geno 
         gexp <- .expandGeno(x, hdr, elt, idx)
         ## rowData
-        if (is.null(rowData(x)$paramRangeID)) {
-            rdexp <- rowData(x)[idx, ]
-            mcols(rdexp) <- NULL
-        } else {
-            rdexp <- rowData(x)[idx, "paramRangeID"]
-        }
+        rdexp <- .stripRowData(rowData(x)[idx,])
         ## exptData, colData untouched
         VCF(rowData=rdexp, colData=colData(x), exptData=exptData(x),
             fixed=fexp, info=iexp, geno=gexp, ..., collapsed=FALSE)
     }
 )
+
+.stripRowData <- function(x) {
+  x[,intersect(colnames(mcols(x)), "paramRangeID")]
+}
 
 .expandGeno <- function(x, hdr, elt, idx)
 {
