@@ -33,7 +33,7 @@ setMethod("predictCoding", c("ExpandedVCF", "TranscriptDb", "ANY", "missing"),
     function(query, subject, seqSource, varAllele, ..., ignore.strand=FALSE)
 {
     ## ExpandedVCF ALT must be DNAStringSet (CharacterList not supported)
-    callGeneric(rowData(query), subject, seqSource, alt, ..., 
+    callGeneric(rowData(query), subject, seqSource, alt(query), ..., 
                 ignore.strand=ignore.strand) 
 })
 
