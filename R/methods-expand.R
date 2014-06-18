@@ -81,7 +81,7 @@ setMethod("expand", "CollapsedVCF",
             }
         } else {
             ## 'Number' is '.'
-            gvar$AD <- .expandAD(AD, length(idx), ncol(x))
+            gvar$AD <- .expandAD(AD, idx, ncol(x))
         }
     }
     isA <- names(gvar) %in% rownames(ghdr)[isA]
@@ -97,18 +97,22 @@ setMethod("expand", "CollapsedVCF",
 }
 
 ## returns an array of REF,ALT pairs
-.expandAD <- function(AD, idxlen, xcols)
+.expandAD <- function(AD, idx, xcols)
 {
     if (is.list(AD)) {
+        emptyAD <- elementLengths(AD) == 0L
+        emptypart <- PartitioningByWidth(idx[emptyAD])
+        na <- rep(NA_integer_, sum(width(emptypart)))
+        AD[emptyAD] <- as.list(relist(na, emptypart))
         adpart <- PartitioningByWidth(AD)
         nalt <- width(adpart) - 1L
-        if (sum(nalt) != idxlen*xcols)
+        if (sum(nalt) != length(idx)*xcols)
           stop("length of AD does not match expanded index")
         AD <- as.integer(unlist(AD, use.names=FALSE))
         ref <- logical(length(AD))
         ref[start(adpart)] <- TRUE
         vec <- c(rep(AD[ref], nalt), AD[!ref])
-        array(vec, c(idxlen, xcols, 2L))
+        array(vec, c(length(idx), xcols, 2L))
     } else {
         AD
     }
