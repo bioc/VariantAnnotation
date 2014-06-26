@@ -10,7 +10,7 @@ setMethod("expand", "CollapsedVCF",
             fxd <- fixed(x)
             fxd$ALT <- unlist(alt(x), use.names=FALSE)
             if (!is.null(geno(x)$AD))
-              geno(x)$AD <- .expandAD(geno(x)$AD, nrow(x), ncol(x))
+              geno(x)$AD <- .expandAD(geno(x)$AD, nrow(x), ncol(x), elt)
             return(VCF(rowData=.stripRowData(rowData(x)), colData=colData(x), 
                        exptData=exptData(x), fixed=fxd, 
                        info=.unlistAltInfo(x), geno=geno(x), 
@@ -81,7 +81,7 @@ setMethod("expand", "CollapsedVCF",
             }
         } else {
             ## 'Number' is '.'
-            gvar$AD <- .expandAD(AD, idx, ncol(x))
+            gvar$AD <- .expandAD(AD, length(idx), ncol(x), elt)
         }
     }
     isA <- names(gvar) %in% rownames(ghdr)[isA]
@@ -97,22 +97,26 @@ setMethod("expand", "CollapsedVCF",
 }
 
 ## returns an array of REF,ALT pairs
-.expandAD <- function(AD, idx, xcols)
+.expandAD <- function(AD, idxlen, xcols, elt)
 {
     if (is.list(AD)) {
         emptyAD <- elementLengths(AD) == 0L
-        emptypart <- PartitioningByWidth(idx[emptyAD])
-        na <- rep(NA_integer_, sum(width(emptypart)))
-        AD[emptyAD] <- as.list(relist(na, emptypart))
+        if (all(elementLengths(elt) == 1L)) {
+            AD[emptyAD] <- list(c(NA_integer_, NA_integer_))
+        } else {
+            emptypart <- PartitioningByWidth(elt[emptyAD])
+            na <- rep(NA_integer_, sum(width(emptypart)))
+            AD[emptyAD] <- as.list(relist(na, emptypart))
+        }
         adpart <- PartitioningByWidth(AD)
         nalt <- width(adpart) - 1L
-        if (sum(nalt) != length(idx)*xcols)
+        if (sum(nalt) != idxlen*xcols)
           stop("length of AD does not match expanded index")
         AD <- as.integer(unlist(AD, use.names=FALSE))
         ref <- logical(length(AD))
         ref[start(adpart)] <- TRUE
         vec <- c(rep(AD[ref], nalt), AD[!ref])
-        array(vec, c(length(idx), xcols, 2L))
+        array(vec, c(idxlen, xcols, 2L))
     } else {
         AD
     }
