@@ -100,6 +100,7 @@ setMethod(readVcf, c(file="character", genome="missing",
             chr <- names(vcfWhich(param))
         else
             chr <- seqlevels(param)
+        ## confirm param seqlevels are in supplied Seqinfo 
         if (any(!chr %in% seqnames(genome)))
             stop("'seqnames' in 'vcfWhich(param)' must be present in 'genome'")
     }
@@ -118,20 +119,23 @@ setMethod(readVcf, c(file="character", genome="missing",
 
     ## rowData
     rowData <- vcf$rowData
-    seqinfo(rowData) <- merge(seqinfo(rowData), seqinfo(hdr))
     if (length(rowData)) {
-        if (is(genome, "character")) {
+        if (is(genome, "character")) { 
+           if (length(seqinfo(hdr))) {
+               merged <- merge(seqinfo(hdr), seqinfo(rowData))
+               map <- match(names(merged), names(seqinfo(rowData)))
+               seqinfo(rowData, map) <- merged
+           }
            genome(rowData) <- genome
-        } else {
-            oldsi <- seqinfo(rowData)
-            newsi <- genome
-                if (length(newsi) > length(oldsi)) {
-                    new2old <- match(seqlevels(newsi), seqlevels(oldsi))
-                    seqinfo(rowData, new2old=new2old) <- merge(newsi, oldsi) 
-                } else {
-                    seqinfo(rowData) <- genome
-                }
-       } 
+        } else if (is(genome, "Seqinfo")) {
+            if (length(seqinfo(hdr)))
+                reference <- merge(seqinfo(hdr), genome)
+            else 
+                reference <- genome
+            merged <- merge(reference, seqinfo(rowData))
+            map <- match(names(merged), names(seqinfo(rowData)))
+            seqinfo(rowData, map) <- merged 
+        }
     }
     values(rowData) <- DataFrame(vcf["paramRangeID"])
 

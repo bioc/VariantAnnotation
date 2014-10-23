@@ -57,16 +57,22 @@ readGT(file, nucleotides=FALSE, param=ScanVcfParam(), ..., row.names=TRUE)
     ?\code{indexTabix} for help creating a \code{\link{TabixFile}}.
   }
   \item{genome}{A \code{character} or \code{Seqinfo} object.
+    \itemize{
+      \item{\code{character}:}{ Genome identifier as a single string or named 
+        character vector. Names of the character vector correspond to 
+        chromosome names in the file. This identifier replaces the genome 
+        information in the VCF \code{Seqinfo} (i.e., \code{seqinfo(vcf)}).
+      }
+      \item{\code{Seqinfo}:}{ When \code{genome} is provided as a \code{Seqinfo}
+        it is propagated to the VCF output. If seqinfo information can be 
+        obtained from the file, 
+        (i.e., seqinfo(scanVcfHeader(fl)) is not empty), the output
+        \code{Seqinfo} is a product of merging the two.
 
-    \code{character}: Genome identifier supplied as single string or named 
-    character vector (names correspond to seqnames in the VCF file). This
-    identifier will relpace the genome information in the VCF \code{Seqinfo} 
-    (i.e., \code{seqinfo(vcf)}).
-
-    \code{Seqinfo}: When a \code{Seqinfo} is provided it is merged with
-    the existing \code{Seqinfo}. It can have greater than or equal to the
-    number of \code{seqlevels} in the current \code{Seqinfo} and the
-    \code{seqlevels} must match.
+        If a param (i.e., ScanVcfParam) is used in the call to \code{readVcf}, 
+        the seqlevels  of the param ranges must be present in \code{genome}.
+      }
+    }
   }
   \item{param}{A instance of \code{\linkS4class{ScanVcfParam}}, \code{GRanges},
     \code{GRangesList}, \code{RangedData} or \code{RangesList}. VCF files can be 
