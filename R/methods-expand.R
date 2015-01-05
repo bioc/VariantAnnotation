@@ -130,7 +130,7 @@ setMethod("expand", "CollapsedVCF",
         if (any(csums))
             res <- IRanges:::.expandByColumnSet(ivar, inms[csums], TRUE)
         else
-            res <- ivar[idx, ] 
+            res <- ivar[idx, , drop=FALSE] 
         ## elementLengths shorter than ALT
         if (any(!csums)) {
             nms <- colnames(ivar) %in% names(csums)[!csums]
@@ -142,7 +142,7 @@ setMethod("expand", "CollapsedVCF",
         }
         res
     } else {
-        ivar[idx, ]
+        ivar[idx, , drop=FALSE]
     }
 }
 
