@@ -97,15 +97,19 @@ setMethod("expand", "CollapsedVCF",
     gvar
 }
 
-## returns an array of REF,ALT pairs
+## returns an array of REF,ALT and REF,<NON_REF> pairs
+## 'z' dimension of result is always 2
 .expandAD <- function(AD, idxlen, xcols)
 {
     if (is.list(AD)) {
         adpart <- PartitioningByWidth(AD)
+        if (any(zeros <- width(adpart) == 0L)) { 
+            AD[zeros] <- list(rep(NA_integer_, 2L))
+            adpart <- PartitioningByWidth(AD)
+        }
+
         nalt <- width(adpart) - 1L
-        if (sum(nalt) != idxlen*xcols)
-          stop("length of AD does not match expanded index")
-        AD <- as.integer(unlist(AD, use.names=FALSE))
+        AD <- unlist(AD, use.names=FALSE)
         ref <- logical(length(AD))
         ref[start(adpart)] <- TRUE
         vec <- c(rep(AD[ref], nalt), AD[!ref])
