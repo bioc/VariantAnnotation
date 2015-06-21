@@ -132,20 +132,22 @@ readGT(file, nucleotides=FALSE, param=ScanVcfParam(), ..., row.names=TRUE)
       types are determined according to the \sQuote{Number} and \sQuote{Type} 
       information in the file header as follows:
 
+      \sQuote{Number} should only be 0  when \sQuote{Type} is 'flag'. These
+      fields are parsed as logical vectors.
+ 
       If \sQuote{Number} is 1, \sQuote{info} data are parsed into a 
-      \code{vector}. \sQuote{geno} data are parsed into a \code{matrix} where 
-      the columns are the samples.
+      \code{vector} and \sQuote{geno} into a \code{matrix}.
 
-      If \sQuote{Number} is an integer >1, \sQuote{info} data are parsed into a
-      \code{DataFrame} with the indicated number of columns. \sQuote{geno} are
-      parsed into an \code{array} with the same dimentions as \sQuote{Number}. 
+      If \sQuote{Number} is >1, \sQuote{info} data are parsed into a
+      \code{DataFrame} with the same number of columns. \sQuote{geno} are
+      parsed into an \code{array} with the same dimensions as \sQuote{Number}. 
       Columns of the \sQuote{geno} matrices are the samples.
 
-      If \sQuote{Number} is \sQuote{.}, \sQuote{A} or \sQuote{G}, a \code{matrix} 
-      is used for both \sQuote{info} and \sQuote{geno} data.
+      If \sQuote{Number} is \sQuote{.}, \sQuote{A} or \sQuote{G}, 
+      both \sQuote{info} and \sQuote{geno} data are parsed into a \code{matrix}.
 
-      When the VCF header does not contain data type information, the data are 
-      returned as a single unparsed column named \sQuote{INFO} or \sQuote{GENO}.
+      When the header does not contain any \sQuote{INFO} lines, the data are
+      returned as a single, unparsed column.
     }
     \item{Missing data: }{
       Missing data in VCF files are represented by a dot ("."). \code{readVcf} 
@@ -187,7 +189,7 @@ readGT(file, nucleotides=FALSE, param=ScanVcfParam(), ..., row.names=TRUE)
       The \code{genome} argument is stored in the seqinfo of the \code{GRanges} 
       and can be accessed with \code{genome(<VCF>)}.
 
-      One elementMetadata column, \code{paramRangeID}, is included with the
+      One metadata column, \code{paramRangeID}, is included with the
       \code{rowRanges}. This ID is meaningful when multiple ranges are
       specified in the \code{ScanVcfParam} and distinguishes which records
       match each range.
@@ -208,9 +210,9 @@ readGT(file, nucleotides=FALSE, param=ScanVcfParam(), ..., row.names=TRUE)
       This slot contains a \code{DataFrame} describing the samples. If present, 
       the sample names following FORMAT in the VCF file become the row names.
     }
-    \item{exptData: }{ 
-      Header information present in the file is put into a \code{SimpleList}
-      in \code{exptData}.
+    \item{metadata: }{ 
+      Header information present in the file is put into a \code{list}
+      in \code{metadata}.
     }
   }
   See references for complete details of the VCF file format. 
