@@ -25,8 +25,8 @@
     \code{VRanges} instance containing the variants to be annotated. If
     \code{query} is a \link[IRanges]{Ranges} or \code{VRanges} it is coerced to
     a \link{GRanges}.  If a \linkS4class{VCF} is provided the \code{GRanges}
-    returned by the \code{rowRanges()} accessor will be used. All
-    elementMetadata columns are ignored.
+    returned by the \code{rowRanges()} accessor will be used. All metadata
+    columns are ignored.
 
     When \code{query} is not a \code{VCF} object a \code{varAllele} must be
     provided. The \code{varAllele} must be a \code{DNAStringSet} the same length
@@ -105,7 +105,7 @@
   The strand of the output \code{GRanges} represents the strand of the 
   \code{subject} hit.
 
-  At a minimum, the \code{elementMetadata} columns include,
+  At a minimum, the metadata columns (accessible with \code{mcols}) include,
   \describe{
     \item{\code{varAllele}}{
       Variant allele. This value is reverse complemented for an unstranded 
@@ -207,9 +207,9 @@
   ## ----------------------------
   ## GRanges object as query 
   ## ----------------------------
-  ## Alternatively, a GRanges can be the 'query' to predictCoding().
-  ## The seqlevels were previously adjusted in the VCF object so the GRanges
-  ## extracted with rowRanges() has the correct seqlevels.
+  ## A GRanges can also be used as the 'query'. The seqlevels in the VCF
+  ## were adjusted in previous example so the GRanges extracted with
+  ## has the correct seqlevels.
   rd <- rowRanges(vcf)
  
   ## The GRanges must be expanded to have one row per alternate allele. 
@@ -218,8 +218,8 @@
   eltlen <- elementLengths(altallele)
   rd_exp <- rep(rd, eltlen)
  
-  ## Call predictCoding() with the expanded GRanges as the 'query'
-  ## and the unlisted alternate allele as the 'varAllele'.
+  ## Call predictCoding() with the expanded GRanges and the unlisted
+  ## alternate allele as the 'varAllele'.
   coding2 <- predictCoding(rd_exp, txdb, Hsapiens, unlist(altallele)) 
 }
 
