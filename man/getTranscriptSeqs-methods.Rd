@@ -8,6 +8,7 @@
 \title{Get transcript sequences}
 
 \description{
+  DEPRECATED. Use GenomicFeatures::extractTranscriptSeqs() instead.
   Extract transcript sequences from a \link[BSgenome]{BSgenome} object or 
   an \link[Rsamtools]{FaFile}.
 }
@@ -52,6 +53,7 @@
 }
 
 \examples{
+\dontrun{
   library(TxDb.Hsapiens.UCSC.hg19.knownGene)
   library(BSgenome.Hsapiens.UCSC.hg19)
  
@@ -70,6 +72,7 @@
   ## a single DNAString in 'seqs'. 
   cdsByTx[1]
   seqs[1]
+}
 }
 
 \keyword{methods}
