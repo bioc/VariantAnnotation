@@ -23,7 +23,7 @@ selectSome <- BiocGenerics:::selectSome
                   " ", sQuote(nm), " fields: ",
                   paste(selectSome(names(map)), collapse=", "))
     cat(msg, "\n")
-    if (!length(map) && nm == "info")
+    if (!length(map) && nm == "info" && !length(tag))
         map <- list(list("1", character()))
     map
 }
