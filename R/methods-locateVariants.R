@@ -342,11 +342,7 @@ setMethod("locateVariants", c("GRanges", "TxDb", "AllVariants"),
             locateVariants(query, subject, CodingVariants(), cache=cache,
                            ignore.strand=ignore.strand)
         intron <- 
-            locateVariants(query, subject, 
-                IntergenicVariants(upstream(intergenic(region)), 
-                                   downstream(intergenic(region)),
-                                   idType(intergenic(region))),
-                cache=cache,
+            locateVariants(query, subject, IntronVariants(), cache=cache,
                 ignore.strand=ignore.strand)
         splice <- 
             locateVariants(query, subject, SpliceSiteVariants(), 
