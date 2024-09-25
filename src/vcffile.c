@@ -28,23 +28,23 @@ static void vcfwarn(khash_t(WARNINGS) *warnings,
                     const char *fmt, ...)
 {
     static const int bufsize = 2048;
-    char *buf = Calloc(strlen(fmt), char);
+    char *buf = R_Calloc(strlen(fmt), char);
     int ret;
 
     memcpy(buf, fmt, strlen(fmt) + 1);
     if (kh_get(WARNINGS, warnings, buf) != kh_end(warnings)) {
-        Free(buf);
+        R_Free(buf);
         return;
     }
     kh_put(WARNINGS, warnings, buf, &ret);
 
-    buf = Calloc(bufsize, char);
+    buf = R_Calloc(bufsize, char);
     va_list argp;
     va_start(argp, fmt);
     (void) vsnprintf(buf, bufsize, fmt, argp);
     va_end(argp);
     Rf_warning("%s", buf);
-    Free(buf);
+    R_Free(buf);
 
     return;
 }
@@ -54,7 +54,7 @@ static void vcfwarn_free(khash_t(WARNINGS) *warnings)
     khiter_t key;
     for (key = kh_begin(warnings); key != kh_end(warnings); ++key)
         if (kh_exist(warnings, key))
-            Free(kh_key(warnings, key));
+            R_Free(kh_key(warnings, key));
     kh_destroy(WARNINGS, warnings);
 }
 
@@ -281,7 +281,7 @@ static void _parse(char *line, const int irec,
         return;                 /* early exit */
     field = it_init(&it2, it_next(&it0), ':');
     int n_fld = it_nfld(&it2);
-    int *gmapidx = Calloc(n_fld, int);
+    int *gmapidx = R_Calloc(n_fld, int);
     for (fmtidx = 0; '\0' != *field; field = it_next(&it2), fmtidx++) {
         for (j = 0; j < gmap_n; ++j)
             if (0L == strcmp(field, gnms[j]))
@@ -317,7 +317,7 @@ static void _parse(char *line, const int irec,
         }
     }
 
-    Free(gmapidx);
+    R_Free(gmapidx);
 }
 
 static SEXP _vcf_as_SEXP(struct parse_t *parse, SEXP fmap, SEXP smap,
@@ -420,7 +420,7 @@ static void _vcf_types_tidy(struct parse_t *parse, SEXP result)
 static struct parse_t *_parse_new(int vcf_n, SEXP smap, SEXP fmap,
                                   SEXP imap, SEXP gmap)
 {
-    struct parse_t *parse = Calloc(1, struct parse_t);
+    struct parse_t *parse = R_Calloc(1, struct parse_t);
 
     parse->vcf_n = vcf_n;
     parse->str = _strhash_new();
@@ -468,7 +468,7 @@ static void _parse_free(struct parse_t *parse)
     dna_hash_free(parse->ref);
     vcfwarn_free(parse->warnings);
     _strhash_free(parse->str);
-    Free(parse);
+    R_Free(parse);
 }
 
 static void _parse_grow(struct parse_t *parse, int size)
@@ -493,7 +493,7 @@ SEXP scan_vcf_connection(SEXP txt, SEXP smap, SEXP fmap, SEXP imap,
     for (int irec = 0; irec < parse->vcf_n; irec++) {
         char *line = Strdup(CHAR(STRING_ELT(txt, irec)));
         _parse(line, irec, parse, row_names);
-        Free(line);
+        R_Free(line);
     }
 
     SEXP result = PROTECT(Rf_allocVector(VECSXP, 1));
@@ -522,13 +522,13 @@ SEXP scan_vcf_character(SEXP file, SEXP yield, SEXP smap, SEXP fmap,
     parse = _parse_new(INTEGER(yield)[0], smap, fmap, imap, gmap);
 
     const int BUFLEN = 4096;
-    char *buf0 = Calloc(BUFLEN, char);
+    char *buf0 = R_Calloc(BUFLEN, char);
     char *buf = buf0, *end = buf0 + BUFLEN;
 
     gzFile gz = gzopen(CHAR(STRING_ELT(file, 0)), "rb");
     int irec = 0;
     if (Z_NULL == gz) {
-        Free(parse);
+        R_Free(parse);
         Rf_error("failed to open file");
     }
 
@@ -536,7 +536,7 @@ SEXP scan_vcf_character(SEXP file, SEXP yield, SEXP smap, SEXP fmap,
         int  n = strlen(buf);
         if (n == end - buf - 1 && (*(end - 2) != '\n' && *(end - 2) != '\r')) {
             const int len0 = end - buf0, len1 = len0 * 1.6;
-            buf0 = Realloc(buf0, len1, char);
+            buf0 = R_Realloc(buf0, len1, char);
             buf = buf0 + len0 - 1;
             end = buf0 + len1;
             continue;
@@ -564,7 +564,7 @@ SEXP scan_vcf_character(SEXP file, SEXP yield, SEXP smap, SEXP fmap,
     }
 
     gzclose(gz);
-    Free(buf0);
+    R_Free(buf0);
 
     _vcf_grow(parse->vcf, irec);
 

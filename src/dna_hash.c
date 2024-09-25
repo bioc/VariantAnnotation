@@ -18,9 +18,9 @@ static const double DNA_GROW = 1.6;
 
 struct dna_hash_t *dna_hash_new(const int size)
 {
-    struct dna_hash_t *dna = Calloc(1, struct dna_hash_t);
+    struct dna_hash_t *dna = R_Calloc(1, struct dna_hash_t);
     dna->hash = kh_init(ref);
-    dna->offset = Calloc(size, int);
+    dna->offset = R_Calloc(size, int);
     dna->size = size;
     dna->len = dna->hash_idx = 0;
     return dna;
@@ -31,16 +31,16 @@ void dna_hash_free(struct dna_hash_t *dna)
     khiter_t key;
     for (key = kh_begin(dna->hash); key != kh_end(dna->hash); ++key) {
         if (kh_exist(dna->hash, key))
-            Free(kh_key(dna->hash, key));
+            R_Free(kh_key(dna->hash, key));
     }
     kh_destroy(ref, dna->hash);
-    Free(dna->offset);
-    Free(dna);
+    R_Free(dna->offset);
+    R_Free(dna);
 }
 
 void dna_hash_grow(struct dna_hash_t *dna, int size)
 {
-    dna->offset = Realloc(dna->offset, size, int);
+    dna->offset = R_Realloc(dna->offset, size, int);
     dna->size = size;
 }
 
@@ -50,7 +50,7 @@ void dna_hash_append(struct dna_hash_t *dna, const char *value)
     key = kh_get(ref, dna->hash, value);
     if (key == kh_end(dna->hash)) {
         int ret;
-        char *buf = Calloc(strlen(value) + 1, char);
+        char *buf = R_Calloc(strlen(value) + 1, char);
         strcpy(buf, value);
         key = kh_put(ref, dna->hash, buf, &ret);
         kh_value(dna->hash, key) = dna->hash_idx++;
@@ -69,8 +69,8 @@ SEXP dna_hash_as_DNAStringSet(struct dna_hash_t *dna)
     Rbyte *tagp;
     khiter_t key;
 
-    istart = Calloc(dna->hash_idx, int);
-    iwidth = Calloc(dna->hash_idx, int);
+    istart = R_Calloc(dna->hash_idx, int);
+    iwidth = R_Calloc(dna->hash_idx, int);
 
     twidth = 0;
     for (key = kh_begin(dna->hash); key != kh_end(dna->hash); ++key)
@@ -116,8 +116,8 @@ SEXP dna_hash_as_DNAStringSet(struct dna_hash_t *dna)
     PROTECT(xstringset = new_XRawList_from_tag(
                 "DNAStringSet", "DNAString", tag, ranges));
 
-    Free(iwidth);
-    Free(istart);
+    R_Free(iwidth);
+    R_Free(istart);
     UNPROTECT(5);
 
     return xstringset;

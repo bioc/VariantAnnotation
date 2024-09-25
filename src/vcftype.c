@@ -4,7 +4,7 @@ struct vcftype_t *_vcftype_new(SEXPTYPE type, SEXPTYPE listtype,
                                char number, const char *charDotAs,
                                int nrow, int ncol, int ndim, int arrayDim)
 {
-    struct vcftype_t *vcftype = Calloc(1, struct vcftype_t);
+    struct vcftype_t *vcftype = R_Calloc(1, struct vcftype_t);
     vcftype->type = type;
     vcftype->listtype = listtype; /* VECSXP: ragged array */
     vcftype->number = number;     /* 'A' or '.' for ragged array only */
@@ -25,38 +25,38 @@ void _vcftype_free(struct vcftype_t *vcftype)
     case NILSXP:
         break;
     case LGLSXP:
-        Free(vcftype->u.logical);
+        R_Free(vcftype->u.logical);
         break;
     case INTSXP:
-        Free(vcftype->u.integer);
+        R_Free(vcftype->u.integer);
         break;
     case REALSXP:
-        Free(vcftype->u.numeric);
+        R_Free(vcftype->u.numeric);
         break;
     case STRSXP:
         if (NULL != vcftype->u.character)
-            Free(vcftype->u.character);
+            R_Free(vcftype->u.character);
         break;
     case VECSXP:
         if (NULL != vcftype->u.list) {
             for (int i = 0; i < sz; ++i)
                 if (NULL != vcftype->u.list[i])
                     _vcftype_free(vcftype->u.list[i]);
-            Free(vcftype->u.list);
+            R_Free(vcftype->u.list);
         }
         break;
     default:
         Rf_error("(internal) unhandled type '%s'",
                  type2char(vcftype->type));
     }
-    Free(vcftype);
+    R_Free(vcftype);
 }
 
 void *vcf_Realloc(void * p, size_t n)
 {
-    /* Realloc(p, 0, *) fails inappropriately */
+    /* R_Realloc(p, 0, *) fails inappropriately */
     if (n == 0) {
-        Free(p);
+        R_Free(p);
         p = NULL;
     } else {
         p = R_chk_realloc(p, n);
@@ -140,17 +140,17 @@ SEXP _vcftype_as_SEXP(struct vcftype_t *vcftype)
     case LGLSXP:
         ival = LOGICAL(ans);
         TPOSE(ival, (const int *) vcftype->u.logical, nrow, ncol, ndim);
-        Free(vcftype->u.logical);
+        R_Free(vcftype->u.logical);
         break;
     case INTSXP:
         ival = INTEGER(ans);
         TPOSE(ival, (const int *) vcftype->u.integer, nrow, ncol, ndim);
-        Free(vcftype->u.integer);
+        R_Free(vcftype->u.integer);
         break;
     case REALSXP:
         dval = REAL(ans);
         TPOSE(dval, (const double *) vcftype->u.numeric, nrow, ncol, ndim);
-        Free(vcftype->u.numeric);
+        R_Free(vcftype->u.numeric);
         break;
     case STRSXP:
         idx = 0;
@@ -162,7 +162,7 @@ SEXP _vcftype_as_SEXP(struct vcftype_t *vcftype)
                     const SEXP elt = (NULL == s) ? R_NaString : mkChar(s);
                     SET_STRING_ELT(ans, idx++, elt);
                 }
-        Free(vcftype->u.character);
+        R_Free(vcftype->u.character);
         break;
     case VECSXP:
         idx = 0;
@@ -176,7 +176,7 @@ SEXP _vcftype_as_SEXP(struct vcftype_t *vcftype)
                         _vcftype_as_SEXP(t);
                     SET_VECTOR_ELT(ans, idx++, elt);
                 }
-        Free(vcftype->u.list);
+        R_Free(vcftype->u.list);
         break;
     default:
         Rf_error("(internal) unhandled type '%s'",

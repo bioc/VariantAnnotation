@@ -7,27 +7,27 @@ static const double RLE_GROW = 1.6;
 
 struct rle_t *rle_new(const int size)
 {
-    struct rle_t *rle = Calloc(1, struct rle_t);
+    struct rle_t *rle = R_Calloc(1, struct rle_t);
     rle->size = size;
     rle->len = 0;
-    rle->value = Calloc(size, char *);
-    rle->length = Calloc(size, int);
+    rle->value = R_Calloc(size, char *);
+    rle->length = R_Calloc(size, int);
     return rle;
 }
 
 void rle_free(struct rle_t *rle)
 {
     for (int i = 0; i < rle->len; ++i)
-        Free(rle->value[i]);
-    Free(rle->value);
-    Free(rle->length);
-    Free(rle);
+        R_Free(rle->value[i]);
+    R_Free(rle->value);
+    R_Free(rle->length);
+    R_Free(rle);
 }
 
 void rle_grow(struct rle_t *rle, int size)
 {
-    rle->value = Realloc(rle->value, size, char *);
-    rle->length = Realloc(rle->length, size, int);
+    rle->value = R_Realloc(rle->value, size, char *);
+    rle->length = R_Realloc(rle->length, size, int);
     rle->size = size;
 }
 

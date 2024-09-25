@@ -12,7 +12,7 @@ void _strhash_free(khash_t(strhash) *str)
     khiter_t key;
     for (key = kh_begin(str); key != kh_end(str); ++key) {
         if (kh_exist(str, key))
-            Free(kh_key(str, key));
+            R_Free(kh_key(str, key));
     }
     kh_destroy(strhash, str);
 }
