@@ -12,8 +12,6 @@ import(GenomicRanges)
 import(SummarizedExperiment)
 import(Rsamtools)
 
-import(zlibbioc)
-
 importClassesFrom(Biobase, 
     AssayData
 )
